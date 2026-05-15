@@ -220,6 +220,7 @@ const elementsMappingContent = {
 };
 
 document.addEventListener("DOMContentLoaded", async () => {
+  try {
   const orderids = JSON.parse(sessionStorage.getItem("orderids"));
 
   const endpoint =
@@ -301,5 +302,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (orderEmail && orderData?.email) {
     orderEmail.innerText = orderData?.email;
   }
+  } finally { if (window.__hidePreloader) window.__hidePreloader(); }
 
 });

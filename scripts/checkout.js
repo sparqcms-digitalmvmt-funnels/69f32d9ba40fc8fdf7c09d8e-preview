@@ -614,7 +614,7 @@ async function createOrderViaWallet(confirmationToken, paymentMethodId) {
         ?.getAttribute("data-shipping-profile-id") || undefined;
 
   const orderData = {
-    pageId: "uBifxUntgsAd1KKZ0f1-Ew91q9g8oqfr--vXVSfMXJx8HwbW-PeyqBkbDrbPRqv_",
+    pageId: "L4UdJVSJydPZinENzbXf_h0G1ROIHKtn_lMwMVRceV7BFpJ84ZDStV5PpT3aSDXk",
     action: "process",
     campaign_id: CAMPAIGN_ID,
     connection_id: 1,
@@ -776,6 +776,7 @@ async function createOrderViaWallet(confirmationToken, paymentMethodId) {
   if (isTest && window.location.hostname === "localhost") {
     console.log("Sending wallet order to VRIO", { sanitizedOrderData });
   }
+  try { sessionStorage.removeItem('klaviyo_profile_updated'); } catch(e) {}
   try {
     if (typeof validateAndSendToKlaviyo === "function") {
       const klaviyoPreOrderData = { ...sanitizedOrderData };
@@ -907,6 +908,13 @@ async function createOrderViaWallet(confirmationToken, paymentMethodId) {
       }
     } catch (error) {
       console.error("Error validating and sending to Klaviyo", error);
+    }
+    try {
+      if (typeof sendKlaviyoOrderEvents === 'function') {
+        await sendKlaviyoOrderEvents(sanitizedOrderData, result, true);
+      }
+    } catch (error) {
+      console.error("Error sending order events to Klaviyo", error);
     }
     MVMT.track("ORDER_SUCCESS", {
       page: "checkout",
@@ -1321,7 +1329,7 @@ function getInPurchaseUpsells() {
             DEFAULT_OFFER_ID,
           item_id: Number(product.dataset.productId),
           order_offer_quantity:
-            Number(product.getAttribute("data-product-quantity")) || 1
+            Number(product.getAttribute("data-non-shippable-quantity") || product.getAttribute("data-product-quantity")) || 1
         };
       }
       const isInput = product.tagName.toLowerCase() === "input";
@@ -1402,7 +1410,7 @@ async function createOrderViaPaypal(isExpress = false) {
   const shippingProfileId = +document.querySelector(`[data-product-id="${selectedProduct.id}"]`)?.getAttribute('data-shipping-profile-id') || undefined;
   const sameAddress = isSameAddress();
   const orderData = {
-    pageId: "uBifxUntgsAd1KKZ0f1-Ew91q9g8oqfr--vXVSfMXJx8HwbW-PeyqBkbDrbPRqv_",
+    pageId: "L4UdJVSJydPZinENzbXf_h0G1ROIHKtn_lMwMVRceV7BFpJ84ZDStV5PpT3aSDXk",
     action: "process",
     campaign_id: CAMPAIGN_ID,
     connection_id: 1, // VRIO URL ending /connection
@@ -1587,6 +1595,7 @@ async function createOrderViaPaypal(isExpress = false) {
   if (isTest && window.location.hostname === "localhost") {
     console.log("Sending order to VRIO", { sanitizedOrderData });
   }
+  try { sessionStorage.removeItem('klaviyo_profile_updated'); } catch(e) {}
   try {
     if (typeof validateAndSendToKlaviyo === "function") {
       const klaviyoPreOrderData = { ...sanitizedOrderData };
@@ -1701,7 +1710,7 @@ async function createOrderViaKlarna() {
   const sameAddress = isSameAddress();
 
   const orderData = {
-    pageId: "uBifxUntgsAd1KKZ0f1-Ew91q9g8oqfr--vXVSfMXJx8HwbW-PeyqBkbDrbPRqv_",
+    pageId: "L4UdJVSJydPZinENzbXf_h0G1ROIHKtn_lMwMVRceV7BFpJ84ZDStV5PpT3aSDXk",
     campaign_id: CAMPAIGN_ID,
     connection_id: 1,
     email: email,
@@ -1898,6 +1907,7 @@ async function createOrderViaKlarna() {
     console.log("Sending Klarna order to VRIO", { sanitizedOrderData });
   }
 
+  try { sessionStorage.removeItem('klaviyo_profile_updated'); } catch(e) {}
   try {
     if (typeof validateAndSendToKlaviyo === "function") {
       const klaviyoPreOrderData = { ...sanitizedOrderData };
@@ -2079,7 +2089,7 @@ async function createOrderViaCreditCard() {
   let orderTotal = Math.max(0, Number(selectedProduct.price) * selectedProduct.quantity);
 
   const orderData = {
-    pageId: "uBifxUntgsAd1KKZ0f1-Ew91q9g8oqfr--vXVSfMXJx8HwbW-PeyqBkbDrbPRqv_",
+    pageId: "L4UdJVSJydPZinENzbXf_h0G1ROIHKtn_lMwMVRceV7BFpJ84ZDStV5PpT3aSDXk",
     action: "process",
     campaign_id: CAMPAIGN_ID,
     connection_id: 1, // VRIO URL ending /connection
@@ -2387,6 +2397,13 @@ async function createOrderViaCreditCard() {
     } catch (error) {
       console.error("Error validating and sending to Klaviyo", error);
     }
+    try {
+      if (typeof sendKlaviyoOrderEvents === 'function') {
+        await sendKlaviyoOrderEvents(sanitizedOrderData, result, true);
+      }
+    } catch (error) {
+      console.error("Error sending order events to Klaviyo", error);
+    }
 
     let orderSummary = sessionStorage.getItem("orderSummary");
     if (!orderSummary) {
@@ -2567,6 +2584,7 @@ async function sendLead() {
     page_url: window.location.href,
     order_data: sanitizedOrderData,
   });
+  try { sessionStorage.removeItem('klaviyo_profile_updated'); } catch(e) {}
   try {
     if (typeof validateAndSendToKlaviyo === "function") {
       const klaviyoLeadData = {
@@ -2761,6 +2779,8 @@ const populateCountries = (countryEl) => {
     if (isTest) console.error(error);
   }
 };
+
+
 
 document.addEventListener("DOMContentLoaded", async () => {
   
@@ -4329,7 +4349,7 @@ async function returnPaypal() {
 ;
 
     const body = {
-        pageId: "uBifxUntgsAd1KKZ0f1-Ew91q9g8oqfr--vXVSfMXJx8HwbW-PeyqBkbDrbPRqv_",
+        pageId: "L4UdJVSJydPZinENzbXf_h0G1ROIHKtn_lMwMVRceV7BFpJ84ZDStV5PpT3aSDXk",
         action: "process",
         campaign_id: CAMPAIGN_ID,
         connection_id: 1,
@@ -4412,6 +4432,7 @@ async function returnPaypal() {
         offer_id: getVrioOfferIdByProductId(product.item_id) ?? DEFAULT_OFFER_ID,
         item_id: Number(product.item_id),
         order_offer_quantity: product.order_offer_quantity,
+        ...(product.mainOffer ? { mainOffer: true } : {}),
       });
     });
 
@@ -4458,6 +4479,13 @@ async function returnPaypal() {
 
       const result = await response.json();
       if (result.success) {
+        try {
+          if (typeof sendKlaviyoOrderEvents === 'function') {
+            await sendKlaviyoOrderEvents(orderData, result, true);
+          }
+        } catch (error) {
+          console.error("Error sending order events to Klaviyo", error);
+        }
         sessionStorage.removeItem('cart');
         sessionStorage.removeItem('cart_token');
         sessionStorage.removeItem('payment_token_id');
@@ -4599,6 +4627,7 @@ const createCart = async (sanitizedOrderData) => {
         offers: sanitizedOrderData.offers,
         campaign_id: CAMPAIGN_ID,
         connection_id: sanitizedOrderData.connection_id,
+        pageId: sanitizedOrderData.pageId,
       }),
       keepalive: false,
     }
@@ -4952,6 +4981,7 @@ function handleFreeGiftParam(allProducts) {
               checked: checkbox ? checkbox.checked : true,
               quantity:
                 Number(
+                  activeOptionProduct.getAttribute("data-non-shippable-quantity") ||
                   activeOptionProduct.getAttribute("data-product-quantity")
                 ) || 1
             });
@@ -5089,6 +5119,21 @@ function handleFreeGiftParam(allProducts) {
               id: foundProduct.id || 0,
               price: unitPrices[index],
             };
+
+            const cardTextMatch = (card.textContent || '').match(/(\d+)\s*%\s*off/i);
+            const discountPct = Number(card.getAttribute('data-product-discount')) || Number(foundProduct.discountPercentage) || (cardTextMatch ? Number(cardTextMatch[1]) : 0);
+            if (discountPct) {
+              document.querySelectorAll('.mvmt-discount-amount').forEach((el) => {
+                if (/^\d+$/.test((el.textContent || '').trim())) {
+                  el.textContent = String(discountPct);
+                }
+              });
+              document.querySelectorAll('[data-url-param-timer] span').forEach((el) => {
+                if (el.textContent && /\d+%\s*discount/i.test(el.textContent)) {
+                  el.textContent = el.textContent.replace(/\d+(?=%\s*discount)/i, String(discountPct));
+                }
+              });
+            }
           }
         }
 
